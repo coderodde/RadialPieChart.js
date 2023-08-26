@@ -211,9 +211,12 @@ class RadialPieChart {
         const angle_per_entry = 360.0 / this.#entries.length;
 
         for (var i = 0, n = this.#entries.length; i !== n; i++) {
-            const entry_start_angle = this.#start_angle + angle_per_entry * i;
-            const entry_end_angle = entry_start_angle + angle_per_entry;
+            var entry_start_angle = this.#start_angle + angle_per_entry * i;
+            var entry_end_angle = entry_start_angle + angle_per_entry;
 
+            entry_start_angle = Math.PI * (entry_start_angle / 180.0);
+            entry_end_angle = Math.PI * (entry_end_angle / 180.0);
+            
             this.#drawEntry(ctx,
                             entry_start_angle, 
                             entry_end_angle,
@@ -229,7 +232,8 @@ class RadialPieChart {
         const radius = this.#maximum_radius * (value / maximum_value);
 
         ctx.beginPath();
-        ctx.arc(centerX, centerY, radius, start_angle, end_angle, false);
+        ctx.arc(centerX, centerY, radius, start_angle, end_angle);
+        ctx.lineTo(centerX, centerY);
         ctx.fillStyle = color;
         ctx.fill();
     }

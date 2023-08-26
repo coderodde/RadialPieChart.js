@@ -129,7 +129,8 @@ class RadialPieChart {
             // Once here, there is no entries in the list.
             // Just fill the circle with empty_pie_chart_color:
             this.#fillEmptyCircle(ctx);
-            return;
+        } else {
+            this.#renderEntries(ctx);
         }
     }
     
@@ -204,5 +205,43 @@ class RadialPieChart {
 
         ctx.fillStyle = this.#empty_pie_chart_color;
         ctx.fill();
+    }
+
+    #renderEntries(ctx) {
+        const angle_per_entry = 360.0 / this.#entries.length;
+
+        for (var i = 0, n = this.#entries.length; i !== n; i++) {
+            const entry_start_angle = this.#start_angle + angle_per_entry * i;
+            const entry_end_angle = entry_start_angle + angle_per_entry;
+
+            this.#drawEntry(ctx,
+                            entry_start_angle, 
+                            entry_end_angle,
+                            this.#entries[i]["value"],
+                            this.#entries[i]["color"]);
+        }
+    }
+
+    #drawEntry(ctx, start_angle, end_angle, value, color) {
+        const centerX = this.#maximum_radius;
+        const centerY = this.#maximum_radius;
+        const maximum_value = this.#findMaximumValue();
+        const radius = this.#maximum_radius * (value / maximum_value);
+
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, radius, start_angle, end_angle, false);
+        ctx.fillStyle = color;
+        ctx.fill();
+    }
+
+    #findMaximumValue() {
+        var maximum_value = 0;
+
+        for (var i = 0, n = this.#entries.length; i !== n; i++) {
+            const tentative_maximum_value = this.#entries[i]["value"];
+            maximum_value = Math.max(maximum_value, tentative_maximum_value);
+        }
+
+        return maximum_value;
     }
 }

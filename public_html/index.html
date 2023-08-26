@@ -10,7 +10,10 @@
         <script src="rodde-radial-pie-chart.js"></script>
         <script>
             let rpc = new RadialPieChart("radial-pie-chart-canvas");
-            //rpc.addEntry(50, "#f00");
+            rpc.setStartAngle(60.0);
+            rpc.addEntry(50, "#f00");
+            rpc.addEntry(30, "#a257f0")
+            rpc.addEntry(25, "#06771f");
             rpc.render();
         </script>
     </body>

@@ -1,4 +1,4 @@
-class RadialPiechart {
+class RadialPieChart {
     
     static #rgb_alphabet_set = new Set();
 
@@ -36,6 +36,9 @@ class RadialPiechart {
 
         this.#canvas_id = canvas_id;
 
+        this.#maximum_radius = 
+            RadialPieChart.#validateMaximumRadius(maximum_radius);
+
         start_angle %= 360.0;
 
         if (start_angle < 0.0) {
@@ -45,16 +48,16 @@ class RadialPiechart {
         this.#start_angle = start_angle;
 
         this.#empty_pie_chart_color = 
-            this.#validateColor(empty_pie_chart_color);
+            RadialPieChart.#validateColor(empty_pie_chart_color);
 
         this.#canvas_background_color =
-            this.#validateColor(canvas_background_color); 
+            RadialPieChart.#validateColor(canvas_background_color); 
     }
     
     addEntry(value, color) {
         const entry = {
-            "value": this.#validateValue(value),
-            "color": this.#validateColor(color)
+            "value": RadialPieChart.#validateValue(value),
+            "color": RadialPieChart.#validateColor(color)
         };
 
         this.#entries.push(entry);
@@ -118,8 +121,16 @@ class RadialPiechart {
         ctx.canvas.width  = this.#maximum_radius * 2;
         ctx.canvas.height = this.#maximum_radius * 2;
 
+        // Fill the entire chart background:
         ctx.fillStyle = this.#canvas_background_color;
         ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+
+        if (this.#entries.length === 0) {
+            // Once here, there is no entries in the list.
+            // Just fill the circle with empty_pie_chart_color:
+            this.#fillEmptyCircle(ctx);
+            return;
+        }
     }
     
     static #validateValue(value) {
@@ -144,13 +155,21 @@ class RadialPiechart {
                   "the hash #.";
         }
         
-        for (ch in color) {
+        for (let ch in color) {
             if (!this.#rgb_alphabet_set.has(ch)) {
                 throw "Character " + ch + " is not allowed in RGB values.";
             }
         }
         
         return color;
+    }
+
+    static #validateMaximumRadius(maximum_radius) {
+        if (maximum_radius <= 0) {
+            throw "Maximum radius (" + maximum_radius + ") is not positive.";
+        }
+
+        return maximum_radius;
     }
 
     #checkIndex(index) {
@@ -166,5 +185,24 @@ class RadialPiechart {
             throw "Index (" + index + ") is too large. Must be at most "
                   + this.#entries.length + ".";
         }
+    }
+
+    #fillEmptyCircle(ctx) {
+        const width = ctx.canvas.width;
+        const height = ctx.canvas.height;
+        const centerX = width / 2;
+        const centerY = height / 2;
+        const radius = width / 2;
+
+        ctx.beginPath();
+        ctx.arc(centerX,
+                centerY,
+                radius,
+                0.0,
+                2 * Math.PI, 
+                false);
+
+        ctx.fillStyle = this.#empty_pie_chart_color;
+        ctx.fill();
     }
 }

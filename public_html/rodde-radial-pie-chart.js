@@ -1,31 +1,125 @@
 class RadialPiechart {
-    static #rgb_alphabet_set = Set();
-    #entries = [];
     
+    static #rgb_alphabet_set = new Set();
+
+    #canvas_id;
+    #entries = [];
+    #maximum_radius;
+    #start_angle;
+    #empty_pie_chart_color = "";
+    #canvas_background_color = "";
+
     static {
-        #rgb_alphabet_set.add("0");
-        #rgb_alphabet_set.add("1");
-        #rgb_alphabet_set.add("2");
-        #rgb_alphabet_set.add("3");
-        #rgb_alphabet_set.add("4");
-        #rgb_alphabet_set.add("5");
-        #rgb_alphabet_set.add("6");
-        #rgb_alphabet_set.add("7");
-        #rgb_alphabet_set.add("8");
-        #rgb_alphabet_set.add("9");
-        #rgb_alphabet_set.add("a");
-        #rgb_alphabet_set.add("b");
-        #rgb_alphabet_set.add("c");
-        #rgb_alphabet_set.add("d");
-        #rgb_alphabet_set.add("e");
-        #rgb_alphabet_set.add("f");
+        this.#rgb_alphabet_set.add("0");
+        this.#rgb_alphabet_set.add("1");
+        this.#rgb_alphabet_set.add("2");
+        this.#rgb_alphabet_set.add("3");
+        this.#rgb_alphabet_set.add("4");
+        this.#rgb_alphabet_set.add("5");
+        this.#rgb_alphabet_set.add("6");
+        this.#rgb_alphabet_set.add("7");
+        this.#rgb_alphabet_set.add("8");
+        this.#rgb_alphabet_set.add("9");
+        this.#rgb_alphabet_set.add("a");
+        this.#rgb_alphabet_set.add("b");
+        this.#rgb_alphabet_set.add("c");
+        this.#rgb_alphabet_set.add("d");
+        this.#rgb_alphabet_set.add("e");
+        this.#rgb_alphabet_set.add("f");
+    }
+
+    constructor(canvas_id,
+                maximum_radius = 100,
+                start_angle = 0.0, 
+                empty_pie_chart_color = "#000",
+                canvas_background_color = "#fff") {
+
+        this.#canvas_id = canvas_id;
+
+        start_angle %= 360.0;
+
+        if (start_angle < 0.0) {
+            start_angle += 360.0;
+        }
+
+        this.#start_angle = start_angle;
+
+        this.#empty_pie_chart_color = 
+            this.#validateColor(empty_pie_chart_color);
+
+        this.#canvas_background_color =
+            this.#validateColor(canvas_background_color); 
     }
     
     addEntry(value, color) {
         const entry = {
-            "value": validateValue(value),
-            "color": validateColor(color)§
+            "value": this.#validateValue(value),
+            "color": this.#validateColor(color)
         };
+
+        this.#entries.push(entry);
+    }
+
+    getMaximumRadius() {
+        return this.#maximum_radius;
+    }
+
+    getStartAngle() {
+        return this.#start_angle;
+    }
+
+    getValueAt(index) {
+        this.#checkIndex(index);
+        return this.#entries[index]["value"];
+    }
+
+    getColorAt(index) {
+        this.#checkIndex(index);
+        return this.#entries[index]["color"];
+    }
+
+    setStartAngle(start_angle) {
+        this.#start_angle = start_angle;
+        this.#start_angle %= 360.0;
+
+        if (this.#start_angle < 0.0) {
+            this.#start_angle += 360.0;
+        }
+    }
+
+    setMaximumRadius(new_maximum_radius) {
+        this.#validateValue(new_maximum_radius);
+        this.#maximum_radius = new_maximum_radius;
+    }
+
+    setValueAt(index, new_value) {
+        this.#checkIndex(index);
+        this.#entries[index]["value"] = this.#validateValue(new_value);
+    }
+
+    setColorAt(index, new_color) {
+        this.#checkIndex(index);
+        this.#entries[index]["color"] = this.#validateColor(new_color);
+    }
+
+    removeEntry(index) {
+        if (this.#entries.length === 0) {
+            throw "Removing from an empty list.";
+        }
+
+        this.#checkIndex(index);
+        this.#entries.splice(index, 1);
+    }
+
+    render() {
+        const canvas = document.getElementById(this.#canvas_id);
+        const ctx = canvas.getContext("2d");
+
+        ctx.canvas.width  = this.#maximum_radius * 2;
+        ctx.canvas.height = this.#maximum_radius * 2;
+
+        ctx.fillStyle = this.#canvas_background_color;
+        ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
     }
     
     static #validateValue(value) {
@@ -57,5 +151,20 @@ class RadialPiechart {
         }
         
         return color;
+    }
+
+    #checkIndex(index) {
+        if (this.#entries.length === 0) {
+            throw "Indexing an empty list.";
+        }
+
+        if (index < 0) {
+            throw "Index (" + index + ") cannot be negative.";
+        }
+
+        if (index >= this.#entries.length) {
+            throw "Index (" + index + ") is too large. Must be at most "
+                  + this.#entries.length + ".";
+        }
     }
 }

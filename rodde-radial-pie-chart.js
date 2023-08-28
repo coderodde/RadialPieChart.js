@@ -1,32 +1,11 @@
 class RadialPieChart {
     
-    static #rgb_alphabet_set = new Set();
-
     #canvas_id;
     #entries = [];
     #maximum_radius;
     #start_angle;
-    #empty_pie_chart_color = "";
-    #canvas_background_color = "";
-
-    static {
-        this.#rgb_alphabet_set.add("0");
-        this.#rgb_alphabet_set.add("1");
-        this.#rgb_alphabet_set.add("2");
-        this.#rgb_alphabet_set.add("3");
-        this.#rgb_alphabet_set.add("4");
-        this.#rgb_alphabet_set.add("5");
-        this.#rgb_alphabet_set.add("6");
-        this.#rgb_alphabet_set.add("7");
-        this.#rgb_alphabet_set.add("8");
-        this.#rgb_alphabet_set.add("9");
-        this.#rgb_alphabet_set.add("a");
-        this.#rgb_alphabet_set.add("b");
-        this.#rgb_alphabet_set.add("c");
-        this.#rgb_alphabet_set.add("d");
-        this.#rgb_alphabet_set.add("e");
-        this.#rgb_alphabet_set.add("f");
-    }
+    #empty_pie_chart_color;
+    #canvas_background_color;
 
     constructor(canvas_id,
                 maximum_radius = 100,
@@ -46,18 +25,14 @@ class RadialPieChart {
         }
 
         this.#start_angle = start_angle;
-
-        this.#empty_pie_chart_color = 
-            RadialPieChart.#validateColor(empty_pie_chart_color);
-
-        this.#canvas_background_color =
-            RadialPieChart.#validateColor(canvas_background_color); 
+        this.#empty_pie_chart_color = empty_pie_chart_color;
+        this.#canvas_background_color = canvas_background_color; 
     }
     
     addEntry(value, color) {
         const entry = {
             "value": RadialPieChart.#validateValue(value),
-            "color": RadialPieChart.#validateColor(color)
+            "color": color
         };
 
         this.#entries.push(entry);
@@ -102,7 +77,7 @@ class RadialPieChart {
 
     setColorAt(index, new_color) {
         this.#checkIndex(index);
-        this.#entries[index]["color"] = this.#validateColor(new_color);
+        this.#entries[index]["color"] = new_color;
     }
 
     removeEntry(index) {
@@ -140,29 +115,6 @@ class RadialPieChart {
         }
         
         return value;
-    }
-    
-    static #validateColor(color) {
-        color = color.trim().toLowerCase();
-        
-        if (color.length != 4 && color.length != 7) {
-            throw "Invalid color string. Color string of length "
-                    + color.length
-                    + ". Must be 4 or 7.";
-        }
-        
-        if (color[0] !== "#") {
-            throw "Invalid color string. The first character must be " + 
-                  "the hash #.";
-        }
-        
-        for (let ch in color) {
-            if (!this.#rgb_alphabet_set.has(ch)) {
-                throw "Character " + ch + " is not allowed in RGB values.";
-            }
-        }
-        
-        return color;
     }
 
     static #validateMaximumRadius(maximum_radius) {
@@ -249,3 +201,57 @@ class RadialPieChart {
         return maximum_value;
     }
 }
+
+function populatePieChartWithEntries(rpc, pie_chart) {
+    const entries = pie_chart.getElementsByTagName("entry");
+
+    for (var i = 0, n = entries.length; i !== n; i++) {
+        const entry = entries[i];
+        const value = entry.getAttribute("value");
+        const color = entry.getAttribute("color");
+        rpc.addEntry(value, color);
+    }
+}
+
+function getRadialPieChartCanvasID(number) {
+    return "radial-pie-chart-canvas-id-" + number;
+}
+
+function typesetSinglePieChart(pie_chart, number) {
+    const canvas = document.createElement("canvas");
+    canvas.id = getRadialPieChartCanvasID(getRadialPieChartCanvasID(number));
+
+    pie_chart.appendChild(canvas);
+
+    const start_angle = pie_chart.getAttribute("start-angle") || 0;
+    const maximum_radius = pie_chart.getAttribute("maximum-radius") || 100;
+
+    canvas.width = maximum_radius * 2;
+    canvas.height = maximum_radius * 2;
+
+    const empty_pie_chart_color = 
+        pie_chart.getAttribute("empty-pie-chart-color") || "#000";
+
+    const canvas_background_color = 
+        pie_chart.getAttribute("canvas-background-color") || "#fff";
+
+    const rpc = new RadialPieChart(canvas.id,
+                                   maximum_radius,
+                                   start_angle, 
+                                   empty_pie_chart_color,
+                                   canvas_background_color);
+
+    populatePieChartWithEntries(rpc, pie_chart);
+    rpc.render();
+}
+
+function typesetAllPieCharts() {
+    const pie_charts = document.getElementsByTagName("rodde-radial-pie-chart");
+    var number = 1;
+
+    for (var i = 0, n = pie_charts.length; i !== n; i++) {
+        typesetSinglePieChart(pie_charts[i], number++);
+    }
+}
+
+typesetAllPieCharts();
